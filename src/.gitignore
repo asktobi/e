@@ -1,0 +1,7 @@
+*.loc
+*.local
+*.i
+*.ignore
+test
+a.out
+
