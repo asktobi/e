@@ -5,9 +5,11 @@
 # This is a simple Projectmanagement script #
 #     written and maintained by asktobi     #
 #                                           #
+#                                           #
+#                                           #
 # Im writing this for everyone so pls feel  #
 # free to edit, modify and change the whole #
-#         thing as much as u like.          #
+#        Makefile as much as u like.        #
 #                                           #
 #            git-contributers :             #
 #                                           #
@@ -16,12 +18,12 @@
 #############################################
 
 
-# The git repository "make" should pull from and push to
+# The main git repository
  GITREPO  = https://github.com/asktobi/e.git
 
 # The C compiler u wanna use
- CC       = gcc
- LD       = gcc
+ COMPILER = gcc
+ LINKER   = gcc
 
 # General Optimization flags
  CCFLAGS  =
@@ -40,7 +42,7 @@
 # Header files
  HDR     := $(wildcard hdr/*.h)
 
-# ast/* is for already formatted data 
+# ast/* is for data thats loaded at runtime
  AST     := $(wildcard ast/*.img) $(wildcard ast/*.msk) $(wildcard ast/*.db) 
 
 # Lets make know these are not meant to be files
@@ -50,11 +52,11 @@
 all: $(MAIN)
 
 debug:
-	$(CC) $(DEBUG) $(CCFLAGS) $(LKFLAGS) -o bin/debug
+	$(COMPILER) $(DEBUG) $(CCFLAGS) $(LKFLAGS) -o bin/debug
 
 # Compiling the main executable
 $(MAIN): $(SRC) $(HDR)
-	$(CC) $(CCFLAGS) $(LKFLAGS) $(LIBS) -o $@ $(SRC)
+	$(COMPILER) $(CCFLAGS) $(LKFLAGS) $(LIBS) -o $@ $(SRC)
 
 # Tests
 $(TESTS):

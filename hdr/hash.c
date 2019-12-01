@@ -9,11 +9,38 @@
 
 
 
-void * hash(int function, char* input, size_t size);
-
-void * hashstring(int function, char* input)
+void * hash(int function, void * input, size_t n);
 {
-	int i, len = strlen(input);
+	size_t i;
+	void * hash;
+
+	switch(function)
+	{
+		case SUM_HASH :
+
+			hash = (uint8_t *) malloc(sizeof(uint8_t));
+			for (i = 0; i <= n; i++)
+			{
+				*(uint8_t *) hash += ((uint8_t *) input)[i];
+			}
+
+			return hash;
+
+		case HMAC_HASH :
+
+		default:
+	
+			return NULL;
+	
+	}
+	//Should never get to this point right ?
+	//Compiler should optimize it out anyway
+	return NULL;	
+}
+
+void * hashstring(int function, char * string)
+{
+	int i, len = strlen(string);
 	int *acc = (int *) malloc(sizeof(int));
 
 	switch(function)
@@ -22,7 +49,7 @@ void * hashstring(int function, char* input)
 		
 			for (i = 0; i <= len; i++)
 			{
-				*acc += input[i];
+				*acc += string[i];
 			}
 
 			return acc;
