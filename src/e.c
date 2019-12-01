@@ -13,9 +13,10 @@
 
 int main(int argc, char ** argv)
 {
+	char * blah = "Is this working ?";
 	
-	ll_t file;
-	initscr();
+	data_t * test = w_data( blah, strlen(blah) );
+	p_data(test);
 	
 
 

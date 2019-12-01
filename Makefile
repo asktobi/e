@@ -28,7 +28,7 @@
  LKFLAGS  =
 
 # Library flags
- LIBS     = -lncurses # not used atm
+ LIBS     = -lpthread -lncurses
 
 # Different executeables you can build
  MAIN     = bin/e

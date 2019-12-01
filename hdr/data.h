@@ -19,8 +19,9 @@
 
 struct DATA_HDR
 {
-	size_t size;
-	char   data[0];
+	pthread_mutex_t          lock;
+	size_t                   size;
+	uint8_t                  data[0];
 };
 
 struct LINKED_LIST_HDR
@@ -56,11 +57,30 @@ ll_t    * c_ll();
 queue_t * c_queue();
 
 // write to Datatypes
-data_t  * w_data( void * data_ptr, size_t nbytes );
+data_t  * w_data(  void * data_ptr, size_t nbytes );
+ll_t    * w_ll(    void * data_ptr, size_t nbytes );
+queue_t * w_queue( void * data_ptr, size_t nbytes );
+
+// print (assumed) ASCII Data
+void p_data( data_t * data );
 
 //########################
 //# Function Definitions #
 //########################
+
+// Helpers
+
+void mv_data( void * src, void * dst, size_t nbytes )
+{
+	size_t i;
+	for ( i = 0; i < nbytes; i++)
+	{
+		((uint8_t *) src)[i] = ((uint8_t *) dst)[i];
+	}
+	return;
+}
+
+
 
 // Creators
 
@@ -68,8 +88,8 @@ queue_t * c_queue()
 {
 	queue_t * new_queue     = (queue_t *) malloc(sizeof(queue_t));
 
-	new_queue->consume_lock = PTHREAD_MUTEX_INITIALIZER;
-	new_queue->push_lock    = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_init( &new_queue->consume_lock, NULL );
+	pthread_mutex_init( &new_queue->push_lock,    NULL );
 
 	return new_queue;
 
@@ -79,7 +99,7 @@ ll_t * c_ll()
 {
 	ll_t * new_ll = (ll_t *) malloc(sizeof(ll_t));
 
-	new_ll->lock  = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_init( &new_ll->lock, NULL );
 
 	return new_ll;
 }
@@ -89,6 +109,7 @@ data_t * c_data( size_t max_size )
 {
 	data_t * new_data = (data_t *) malloc(sizeof(data_t) + max_size);
 	
+	pthread_mutex_init( &new_data->lock, NULL );
 	new_data->size    = max_size;
 
 	return new_data;
@@ -99,11 +120,28 @@ data_t * c_data( size_t max_size )
 data_t * w_data( void * data_ptr, size_t nbytes )
 {
 	data_t * new_data  = c_data(nbytes);
-// writing not implemented
+
+	mv_data( data_ptr, new_data->data, nbytes);
+
 	return 	new_data;
 	
 }
 
+//Printers
+
+void p_data( data_t * data)
+{
+	char *buffer = (char *) malloc(data->size + 1);
+	
+	pthread_mutex_lock( &data->lock );
+	mv_data( data->data, buffer, data->size );
+	pthread_mutex_unlock( &data->lock );	
+	
+	buffer[data->size] = '\0';
+	printf("%s",buffer);
+
+	return;
+}
 
 
 #endif
