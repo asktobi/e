@@ -13,10 +13,7 @@
 
 int main(int argc, char ** argv)
 {
-	char * blah = "Is this working ?";
 	
-	data_t * test = w_data( blah, strlen(blah) );
-	p_data(test);
 	
 
 

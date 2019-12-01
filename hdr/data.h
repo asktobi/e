@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 //#############
 //# Datatypes #
@@ -21,7 +22,7 @@ struct DATA_HDR
 {
 	pthread_mutex_t          lock;
 	size_t                   size;
-	uint8_t                  data[0];
+	char                     data[0];
 };
 
 struct LINKED_LIST_HDR
@@ -56,10 +57,11 @@ data_t  * c_data( size_t data_max_size );
 ll_t    * c_ll();
 queue_t * c_queue();
 
+// initalize Datatypes
+data_t * i_data( void * data_ptr, size_t nbytes );
+
 // write to Datatypes
-data_t  * w_data(  void * data_ptr, size_t nbytes );
-ll_t    * w_ll(    void * data_ptr, size_t nbytes );
-queue_t * w_queue( void * data_ptr, size_t nbytes );
+data_t * w_data( void * src, data_t * dst, size_t nbytes );
 
 // print (assumed) ASCII Data
 void p_data( data_t * data );
@@ -67,20 +69,6 @@ void p_data( data_t * data );
 //########################
 //# Function Definitions #
 //########################
-
-// Helpers
-
-void mv_data( void * src, void * dst, size_t nbytes )
-{
-	size_t i;
-	for ( i = 0; i < nbytes; i++)
-	{
-		((uint8_t *) src)[i] = ((uint8_t *) dst)[i];
-	}
-	return;
-}
-
-
 
 // Creators
 
@@ -115,33 +103,56 @@ data_t * c_data( size_t max_size )
 	return new_data;
 }
 
-// Writers
+// Initalizers
 
-data_t * w_data( void * data_ptr, size_t nbytes )
+data_t * i_data( void * src, size_t n )
 {
-	data_t * new_data  = c_data(nbytes);
+	data_t * new_data  = c_data( n );
 
-	mv_data( data_ptr, new_data->data, nbytes);
+	memcpy( &new_data->data, src, n );
 
 	return 	new_data;
 	
 }
 
+//Writers
+
+data_t * w_data( void * src, data_t * dst, size_t n )
+{
+	if ( dst->size < n )
+		return NULL;
+	
+	memcpy( &dst->data, src, n );
+
+	return dst;
+}
+
 //Printers
 
-void p_data( data_t * data)
+void p_data( data_t * src )
 {
-	char *buffer = (char *) malloc(data->size + 1);
+	char *buffer = (char *) malloc(src->size + 1);
 	
-	pthread_mutex_lock( &data->lock );
-	mv_data( data->data, buffer, data->size );
-	pthread_mutex_unlock( &data->lock );	
+	pthread_mutex_lock( &src->lock );
+	memcpy( buffer, &src->data, src->size );
+	pthread_mutex_unlock( &src->lock );	
 	
-	buffer[data->size] = '\0';
-	printf("%s",buffer);
+	buffer[src->size] = '\0';
+	printf("(%p)->data = \"%s\"", src, buffer);
 
 	return;
 }
+
+void info_data( data_t * src )
+{
+	pthread_mutex_lock( &src->lock );
+	printf("data_t (%p)->lock = %d\n", src, 1 /*pthread_mutex_trylock(&data->lock)*/ );
+	printf("       (%p)->size = %d\n", &src->size, (int) src->size);
+	printf("       (%p)->data = %s\n", &src->data, src->data);
+	pthread_mutex_unlock( &src->lock );
+}
+
+
 
 
 #endif
