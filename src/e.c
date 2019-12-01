@@ -2,21 +2,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <ncurses.h>
+
+#include "../hdr/ll.h"
 
 
-pid_t nfork(int n)
-{
-	pid_t pid = fork();
 
-	return pid;
-}
 
 
 int main(int argc, char ** argv)
 {
-	pid_t pid = nfork(1);
+	
+	ll_t buffer;
+	initscr();
+	
 
-	printf("This works yeah ? \nPID: %d ", (int) pid );
+
 
 	return 0;
 
