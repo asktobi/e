@@ -54,7 +54,7 @@ debug:
 
 # Compiling the main executable
 $(MAIN): $(SRC) $(HDR)
-	$(CC) $(CCFLAGS) $(LKFLAGS) -o $@ $(SRC)
+	$(CC) $(CCFLAGS) $(LKFLAGS) $(LIBS) -o $@ $(SRC)
 
 # Tests
 $(TESTS):

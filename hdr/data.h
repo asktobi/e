@@ -20,24 +20,13 @@
 
 struct DATA_HDR
 {
-	pthread_mutex_t          lock;
+	pthread_rwlock_t          lock;
+	// keeps track of links to this
+	// if 0 it can be modified; if != 0 treat as constant
+	unsigned int             links; 
+
 	size_t                   size;
 	char                     data[0];
-};
-
-struct LINKED_LIST_HDR
-{
-	pthread_mutex_t          lock;
-	struct DATA_HDR        * element;
-	struct LINKED_LIST_HDR * next;
-};
-
-struct QUEUE_HDR
-{
-	pthread_mutex_t          consume_lock;
-	struct LINKED_LIST_HDR * first;
-	pthread_mutex_t          push_lock;
-	struct LINKED_LIST_HDR * last;
 };
 
 //#####################
@@ -45,111 +34,90 @@ struct QUEUE_HDR
 //#####################
 
 typedef struct DATA_HDR         data_t;
-typedef struct LINKED_LIST_HDR  ll_t;
-typedef struct QUEUE_HDR        queue_t;
 
 //#########################
 //# Function Declarations #
 //#########################
 
-// create Datatypes
-data_t  * c_data( size_t data_max_size );
-ll_t    * c_ll();
-queue_t * c_queue();
-
-// initalize Datatypes
-data_t * i_data( void * data_ptr, size_t nbytes );
-
-// write to Datatypes
-data_t * w_data( void * src, data_t * dst, size_t nbytes );
-
-// print (assumed) ASCII Data
-void p_data( data_t * data );
+data_t * c_data(     size_t   data_size );
+data_t * init_data(  void   * data_ptr, size_t n );
+void     link_data(  data_t * ptr );
+void     print_data( data_t * data ); // print (assumed) ASCII Data
+void     info_data(  data_t * data );
 
 //########################
 //# Function Definitions #
 //########################
 
-// Creators
 
-queue_t * c_queue()
+data_t * c_data( size_t data_size )
 {
-	queue_t * new_queue     = (queue_t *) malloc(sizeof(queue_t));
-
-	pthread_mutex_init( &new_queue->consume_lock, NULL );
-	pthread_mutex_init( &new_queue->push_lock,    NULL );
-
-	return new_queue;
-
-}
-
-ll_t * c_ll()
-{
-	ll_t * new_ll = (ll_t *) malloc(sizeof(ll_t));
-
-	pthread_mutex_init( &new_ll->lock, NULL );
-
-	return new_ll;
-}
-
-
-data_t * c_data( size_t max_size )
-{
-	data_t * new_data = (data_t *) malloc(sizeof(data_t) + max_size);
+	data_t * new_data = (data_t *) malloc(sizeof(data_t) + data_size);
 	
-	pthread_mutex_init( &new_data->lock, NULL );
-	new_data->size    = max_size;
+	pthread_rwlock_init( &new_data->lock, NULL );
+	new_data->links = 0;
+	new_data->size  = data_size;
 
 	return new_data;
 }
 
-// Initalizers
 
-data_t * i_data( void * src, size_t n )
+void link_data( data_t * ptr)
 {
-	data_t * new_data  = c_data( n );
+	pthread_rwlock_wrlock( &ptr->lock );
+	ptr->links++;
+	pthread_rwlock_unlock( &ptr->lock );
+
+	return;
+}
+
+
+data_t * init_data( void * src, size_t n )
+{
+	data_t * new_data = c_data( n );
 
 	memcpy( &new_data->data, src, n );
 
 	return 	new_data;
-	
 }
 
-//Writers
 
-data_t * w_data( void * src, data_t * dst, size_t n )
+void free_data( data_t * ptr)
 {
-	if ( dst->size < n )
-		return NULL;
-	
-	memcpy( &dst->data, src, n );
-
-	return dst;
+	pthread_rwlock_wrlock(&ptr->lock);
+	if (ptr->links != 0)
+	{	
+		ptr->links--;
+		pthread_rwlock_unlock(&ptr->lock);
+		return;
+	}
+	pthread_rwlock_destroy(&ptr->lock);
+	free(ptr);
 }
 
-//Printers
 
 void p_data( data_t * src )
 {
 	char *buffer = (char *) malloc(src->size + 1);
 	
-	pthread_mutex_lock( &src->lock );
+	pthread_rwlock_rdlock( &src->lock );
 	memcpy( buffer, &src->data, src->size );
-	pthread_mutex_unlock( &src->lock );	
+	pthread_rwlock_unlock( &src->lock );	
 	
 	buffer[src->size] = '\0';
-	printf("(%p)->data = \"%s\"", src, buffer);
+	printf("(%p)->data = \"%s\"\n", src, buffer );
 
 	return;
 }
 
 void info_data( data_t * src )
 {
-	pthread_mutex_lock( &src->lock );
-	printf("data_t (%p)->lock = %d\n", src, 1 /*pthread_mutex_trylock(&data->lock)*/ );
-	printf("       (%p)->size = %d\n", &src->size, (int) src->size);
-	printf("       (%p)->data = %s\n", &src->data, src->data);
-	pthread_mutex_unlock( &src->lock );
+	pthread_rwlock_rdlock( &src->lock );
+	printf("data_t (%p)->mutex\n"           , src );
+	printf("       (%p)->links = %d\n", &src->links, src->links);
+	printf("       (%p)->size  = %d\n", &src->size,  (int) src->size);
+	printf("       (%p)->data  = %s\n", &src->data,  src->data);
+	pthread_rwlock_unlock( &src->lock );
 }
 
 
