@@ -1,8 +1,14 @@
+# e / edit 
 
+	e is an text editor.
 
-
-
-
+## Goals
+	
+	- multiple files
+	- git integration
+	- on-the-fly scripting (not unlike vim)
+	- pinable lines
+	- syntax highlighting
 
 ## dir structure 
 
@@ -25,4 +31,3 @@
 
 	- Makefile:    This is for the Projects Makefile, edit this if you want to change the $COMPILER, $LINKER, $MAIN (resulting Binary) or just the general setup.
 	               A Makefile tutorial: coming soon ... (When i google it ^^)
-
