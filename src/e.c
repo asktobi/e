@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <ncurses.h>
 
-#include "../hdr/ll.h"
+#include "../hdr/data.h"
 
 
 
@@ -14,7 +14,7 @@
 int main(int argc, char ** argv)
 {
 	
-	ll_t buffer;
+	ll_t file;
 	initscr();
 	
 

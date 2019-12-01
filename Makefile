@@ -17,7 +17,7 @@
 
 
 # The git repository "make" should pull from and push to
- GITREPO  = https://github.com/asktobi/000.git
+ GITREPO  = https://github.com/asktobi/e.git
 
 # The C compiler u wanna use
  CC       = gcc
